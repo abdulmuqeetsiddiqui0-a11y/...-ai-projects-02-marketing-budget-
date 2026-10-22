@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Marketing Budget Optimization</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=Fraunces:opsz,wght@9..144,600&display=swap">
+<style>
+:root{--bg:#eef2f6;--panel:#fff;--ink:#1b2a3a;--mute:#5d6b7a;--line:#d8e0e8;--accent:#3d4fd1;--risk:#d9363e;--warn:#d98a1c;--ok:#1f8f7e}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 "IBM Plex Sans",system-ui,sans-serif}
+h1,h2{font-family:Fraunces,Georgia,serif;font-weight:600;margin:0}
+header{padding:28px 24px 8px;max-width:1200px;margin:auto}
+h1{font-size:30px}
+header p{color:var(--mute);margin:6px 0 0;max-width:72ch}
+main{max-width:1200px;margin:auto;padding:16px 24px 48px}
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px}
+.kpi{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:14px 16px}
+.kpi b{display:block;font-size:26px;font-weight:600}
+.kpi span{color:var(--mute);font-size:13px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:16px;margin-bottom:16px}
+.grid{display:grid;grid-template-columns:1.3fr 1fr;gap:16px;align-items:start}
+.grid .card{margin-bottom:0}
+h2{font-size:19px;margin-bottom:6px}
+.sm{color:var(--mute);font-size:13px}
+.tbl{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th{text-align:left;font-weight:500;color:var(--mute);padding:6px 8px;border-bottom:1px solid var(--line);white-space:nowrap}
+td{padding:8px;border-bottom:1px solid var(--line);white-space:nowrap}
+.pill{display:inline-block;padding:1px 10px;border-radius:999px;font-size:12px;font-weight:500}
+.p-up{background:#e1f4f0;color:#13665a}.p-hold{background:#fdf1dc;color:#8a5608}.p-down{background:#fbe4e5;color:#992027}
+.ctl{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin:8px 0 12px}
+input[type=range]{width:240px;accent-color:var(--accent)}
+.rb{display:grid;grid-template-columns:130px 1fr 80px;gap:8px;align-items:center;margin:9px 0;font-size:13px}
+.rb .t{display:flex;flex-direction:column;gap:3px}
+.rb .t i{display:block;height:8px;border-radius:4px}
+.cur{background:#b9c4d0}.rec{background:var(--accent)}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0 12px}
+.chips button{border:1px solid var(--line);background:#fff;border-radius:999px;padding:4px 12px;font:inherit;font-size:13px;cursor:pointer;color:var(--ink)}
+.chips button[aria-pressed=true]{background:var(--accent);border-color:var(--accent);color:#fff}
+.up{color:var(--ok)}.down{color:var(--risk)}
+.leg{display:flex;gap:14px;font-size:12px;color:var(--mute);margin-bottom:4px}
+.leg span:before{content:"";display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:5px;vertical-align:-1px}
+.leg .a:before{background:#b9c4d0}.leg .b:before{background:var(--accent)}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+@media(max-width:900px){.kpis{grid-template-columns:repeat(2,1fr)}.grid{grid-template-columns:1fr}.grid .card{margin-bottom:16px}.rb{grid-template-columns:100px 1fr 70px}}
+</style>
+</head>
+<body>
+<header>
+  <h1>Marketing Budget Optimization</h1>
+  <p>Synthetic demo. Compares what each channel reports with what it truly earns, finds spend that loses money, and recommends how to move the budget for more profit. Figures are in thousands of dollars per month.</p>
+</header>
+<main>
+  <section class="kpis" aria-label="Summary">
+    <div class="kpi"><b id="k1"></b><span>Monthly marketing spend</span></div>
+    <div class="kpi"><b id="k2"></b><span>True profit today (after spend)</span></div>
+    <div class="kpi"><b id="k3"></b><span>Profit after reallocation</span></div>
+    <div class="kpi"><b id="k4"></b><span>Spend in campaigns that lose money</span></div>
+  </section>
+
+  <section class="card">
+    <h2>Reported return vs true return by channel</h2>
+    <p class="sm">Platforms report credit for sales that would have happened anyway (brand search is the classic case). True ROI counts only incremental customers, valued at their 12-month profit. Marginal ROI is what the next dollar earns.</p>
+    <div class="tbl"><table>
+      <thead><tr><th>Channel</th><th>Spend</th><th>Reported ROAS</th><th>True ROI</th><th>CAC</th><th>LTV</th><th>Marginal ROI</th><th>Verdict</th></tr></thead>
+      <tbody id="ch"></tbody>
+    </table></div>
+  </section>
+
+  <div class="grid">
+    <section class="card">
+      <h2>Recommended budget reallocation</h2>
+      <p class="sm">Each step of budget goes to the channel whose next dollar earns the most, with each channel limited to 40%-250% of today's spend.</p>
+      <div class="ctl">
+        <label for="tot">Total budget</label>
+        <input type="range" id="tot" min="80" max="120" value="100" step="5">
+        <b id="totv"></b>
+      </div>
+      <div class="leg"><span class="a">Current</span><span class="b">Recommended</span></div>
+      <div id="alloc"></div>
+    </section>
+
+    <section class="card">
+      <h2>What changes</h2>
+      <div id="why"></div>
+    </section>
+  </div>
+
+  <section class="card" style="margin-top:16px">
+    <h2>Campaign effectiveness</h2>
+    <div class="chips" id="chips" role="group" aria-label="Filter campaigns"></div>
+    <div class="tbl"><table>
+      <thead><tr><th>Campaign</th><th>Channel</th><th>Spend</th><th>New customers</th><th>True ROI</th><th>Profit</th><th>Action</th></tr></thead>
+      <tbody id="camp"></tbody>
+    </table></div>
+    <p class="sm" style="margin-top:10px">Method in production: incrementality tests (geo or holdout) to measure true lift, a media-mix model to fit each channel's diminishing-returns curve, and customer lifetime value from cohort revenue. This demo uses simulated curves in place of fitted ones.</p>
+  </section>
+</main>
+
+<script>
+// ---------- Synthetic data ----------
+// a = max incremental 12-month profit per month ($k), b = saturation scale ($k): value(s) = a * (1 - e^(-s/b))
+const CH = [
+ {n:"Brand search",   s:60,  a:90,  b:40,  ltv:180, rep:4.2, camps:[["Brand terms",.7,1.1],["Competitor conquesting",.3,.8]]},
+ {n:"Non-brand search",s:120, a:420, b:150, ltv:210, rep:1.3, camps:[["High-intent keywords",.55,1.3],["Generic keywords",.45,.7]]},
+ {n:"Paid social",    s:150, a:330, b:200, ltv:120, rep:1.5, camps:[["Lookalike audiences",.5,1.2],["Broad prospecting",.5,.8]]},
+ {n:"Display",        s:90,  a:70,  b:120, ltv:90,  rep:2.6, camps:[["Retargeting banners",.4,1.4],["Programmatic reach",.6,.6]]},
+ {n:"Influencer",     s:70,  a:190, b:100, ltv:140, rep:1.1, camps:[["Micro-influencers",.5,1.4],["Celebrity deal",.5,.6]]},
+ {n:"Email / CRM",    s:20,  a:140, b:25,  ltv:160, rep:1.2, camps:[["Win-back flows",.5,1.2],["Newsletter",.5,.8]]},
+ {n:"Affiliates",     s:50,  a:120, b:90,  ltv:100, rep:2.0, camps:[["Coupon sites",.5,.5],["Content partners",.5,1.5]]},
+ {n:"Video",          s:60,  a:130, b:110, ltv:150, rep:1.0, camps:[["Pre-roll",.5,.8],["Creator video",.5,1.2]]}
+];
+const V = (c, s) => c.a * (1 - Math.exp(-s / c.b));
+const M = (c, s) => (c.a / c.b) * Math.exp(-s / c.b);
+const fmt = v => "$" + Math.round(v).toLocaleString() + "k";
+const sgn = v => (v >= 0 ? "+" : "-") + fmt(Math.abs(v));
+const $ = id => document.getElementById(id);
+const verdict = m => m > 1.15 ? ["Scale up", "p-up"] : m >= .9 ? ["Hold", "p-hold"] : ["Reduce", "p-down"];
+
+CH.forEach(c => { c.v = V(c, c.s); c.m = M(c, c.s); c.cust = c.v * 1000 / c.ltv;
+  const w = c.camps.reduce((t, k) => t + k[1] * k[2], 0);
+  c.list = c.camps.map(k => { const sp = c.s * k[1], val = c.v * (k[1] * k[2]) / w;
+    return {name: k[0], ch: c.n, spend: sp, cust: val * 1000 / c.ltv, roi: val / sp, profit: val - sp}; }); });
+const camps = CH.flatMap(c => c.list).sort((a, b) => b.roi - a.roi);
+const cur = CH.reduce((t, c) => t + c.s, 0);
+
+// ---------- Optimizer: greedy marginal allocation ----------
+function optimize(total) {
+  const s = CH.map(c => c.s * .4), max = CH.map(c => c.s * 2.5);
+  let left = total - s.reduce((a, b) => a + b, 0);
+  while (left > 0.0001) {
+    let best = -1, bm = -1;
+    CH.forEach((c, i) => { if (s[i] < max[i]) { const m = M(c, s[i]); if (m > bm) { bm = m; best = i; } } });
+    if (best < 0) break; const st = Math.min(1, left); s[best] += st; left -= st;
+  }
+  return s;
+}
+const profitAt = s => CH.reduce((t, c, i) => t + V(c, s[i]), 0) - s.reduce((a, b) => a + b, 0);
+const baseProfit = profitAt(CH.map(c => c.s));
+
+// ---------- Rendering ----------
+function renderTop() {
+  $("k1").textContent = fmt(cur);
+  $("k2").textContent = fmt(baseProfit);
+  $("k4").textContent = fmt(camps.filter(c => c.roi < 1).reduce((t, c) => t + c.spend, 0));
+  $("ch").innerHTML = CH.map(c => { const v = verdict(c.m);
+    return `<tr><td>${c.n}</td><td>${fmt(c.s)}</td><td>${(c.v * c.rep / c.s).toFixed(1)}x</td>
+    <td class="${c.v / c.s < 1 ? "down" : ""}">${(c.v / c.s).toFixed(2)}x</td>
+    <td>$${Math.round(c.s * 1000 / c.cust)}</td><td>$${c.ltv}</td><td>${c.m.toFixed(2)}x</td>
+    <td><span class="pill ${v[1]}">${v[0]}</span></td></tr>`; }).join("");
+}
+function realloc() {
+  const total = cur * $("tot").value / 100, s = optimize(total), p = profitAt(s);
+  $("totv").textContent = fmt(total) + " (" + $("tot").value + "%)";
+  $("k3").innerHTML = fmt(p) + ` <span class="sm ${p >= baseProfit ? "up" : "down"}">${sgn(p - baseProfit)}</span>`;
+  const mx = Math.max(...s, ...CH.map(c => c.s));
+  $("alloc").innerHTML = CH.map((c, i) => `<div class="rb"><span>${c.n}</span>
+    <span class="t"><i class="cur" style="width:${c.s / mx * 100}%"></i><i class="rec" style="width:${s[i] / mx * 100}%"></i></span>
+    <span class="${s[i] >= c.s ? "up" : "down"}">${sgn(s[i] - c.s)}</span></div>`).join("");
+  const moves = CH.map((c, i) => ({c, d: s[i] - c.s})).sort((a, b) => b.d - a.d);
+  const ups = moves.filter(x => x.d > 1).slice(0, 3), downs = moves.filter(x => x.d < -1).reverse().slice(0, 3);
+  const ms = CH.map((c, i) => M(c, s[i])).filter((m, i) => s[i] > CH[i].s * .4 + .01 && s[i] < CH[i].s * 2.5 - .01);
+  $("why").innerHTML = `<p><b>Move money into</b></p>` + ups.map(x => `<div class="up">${x.c.n} ${sgn(x.d)}</div>`).join("") +
+    `<p><b>Move money out of</b></p>` + downs.map(x => `<div class="down">${x.c.n} ${sgn(x.d)}</div>`).join("") +
+    `<p class="sm">Expected monthly profit goes from ${fmt(baseProfit)} to ${fmt(p)} (${sgn(p - baseProfit)}) with ${$("tot").value === "100" ? "the same budget" : "a total budget of " + fmt(total)}. ${ms.length ? "Channels that were not forced to a limit now earn about " + (ms.reduce((a, b) => a + b, 0) / ms.length).toFixed(2) + "x on the next dollar, so no further move helps." : ""}</p>`;
+}
+let f = "All";
+function campRows() {
+  const act = r => r >= 1.25 ? ["Scale", "p-up"] : r >= .95 ? ["Maintain", "p-hold"] : ["Cut or fix", "p-down"];
+  $("chips").innerHTML = ["All", "Scale", "Maintain", "Cut or fix"].map(k => `<button aria-pressed="${k === f}" data-k="${k}">${k}</button>`).join("");
+  $("camp").innerHTML = camps.filter(c => f === "All" || act(c.roi)[0] === f).map(c => `<tr><td>${c.name}</td><td>${c.ch}</td><td>${fmt(c.spend)}</td>
+    <td>${Math.round(c.cust).toLocaleString()}</td><td class="${c.roi < 1 ? "down" : ""}">${c.roi.toFixed(2)}x</td>
+    <td class="${c.profit < 0 ? "down" : "up"}">${sgn(c.profit)}</td><td><span class="pill ${act(c.roi)[1]}">${act(c.roi)[0]}</span></td></tr>`).join("");
+}
+$("chips").onclick = e => { const k = e.target.dataset.k; if (k) { f = k; campRows(); } };
+$("tot").oninput = realloc;
+renderTop(); realloc(); campRows();
+</script>
+</body>
+</html>
